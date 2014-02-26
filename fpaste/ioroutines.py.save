@@ -1,0 +1,15 @@
+#python 2 specific code
+from urllib import quote_plus
+#from urllib.parse import quote_plus
+
+def get_uniprot_protein_info(uniprotId):
+    
+    result = requests.get("http://www.uniprot.org/uniprot/" + quote_plus(uniprotId) + ".fasta")
+    if result.status_code != 200:
+        return("Http code {} for id {}.".format(result.status_code, uniprotId))
+    else:
+        result = result.text.split("\n")
+        for line in result:
+            if line[0] = ">":
+                accession, metadata = line[1:].split("")
+        for line in result
