@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" name="fastaUpload">
+{{form.hidden_tag()}}
+<p>
+Enter uniprot ids as a comma separated list<br>
+{{ form.uniprotIds(rows=6, cols=40) }}
+    {% for error in form.errors.uniprotIds %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<p>
+{{form.cutSignalSeq}} &nbspRemove signal sequence where annotated
+</p>
+<input type="submit" value="Load Uniprot Fastas"></p>
+</form>
+{% endblock %}

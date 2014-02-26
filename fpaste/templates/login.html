@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" name="fastaUpload">
+{{form.hidden_tag()}}
+<p>
+    User name: {{ form.username(size=15) }}
+    {% for error in form.errors.username %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+    &nbsp&nbsp key:{{ form.userkey(size=20) }}
+    {% for error in form.errors.userkey %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<p>
+    {{ form.remember_me }} &nbsp Remember me
+    {% for error in form.errors.remember_me %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<input type="submit" value="Load FASTA"></p>
+</form>
+{% endblock %}

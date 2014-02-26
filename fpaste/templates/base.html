@@ -1,0 +1,39 @@
+<html>
+    <head>
+    {% if title %}
+    <title>{{title}}</title>
+    {% else %}
+    <title>Fasta Paste</title>
+    {% endif %}
+    </head>
+    <body>
+        <div>
+        FastaPaste<br> 
+        <ul>
+        <li><a href="/paste">Paste</a></li>
+        <li><a href="/my_activity">My pastes</a></li>
+        <li><a href="/make_list">Make list</a></li>
+        <li><a href="/import_uniprot">Import uniprot</a></li>
+        </ul>
+        </div>
+        <div>
+        {% if g.userLoggedIn %}
+        Welcome back {{g.user.nickname}} (<a href="/logout">log-out</a>)
+        {% else %}
+        <a href="/login">Log in</a>
+        {% endif %}
+        </div>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+        <hr>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </body>
+</html>

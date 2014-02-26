@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" name="fastaUpload">
+{{form.hidden_tag()}}
+<p>
+    Please enter the FASTA description line:<br>
+    {{ form.description(size=80) }}
+    {% for error in form.errors.description %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<p>
+    Enter the protein or nucleic acid sequence:
+    {% for error in form.errors.sequence %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}<br>
+    {{form.sequence(rows=20)}}
+</p>
+<p>
+    Select FASTA type:
+    {% for error in form.errors.fastaType %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}<br>
+    {% for subfield in form.fastaType %}
+    {{subfield}} &nbsp&nbsp{{subfield.label}}<br>
+    {% endfor %}
+</p>
+<p>
+    {{ form.permission }} &nbsp I certify that I have permission to
+    use this sequence and store this sequence on this server
+    {% for error in form.errors.permission %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<input type="submit" value="Load FASTA"></p>
+</form>
+{% endblock %}
