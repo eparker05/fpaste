@@ -89,7 +89,7 @@ class FastaEntry(db.Model):
         else:
             splitIndex = min(254,metaLine.find(' '))
             end = min(256, len(metaLine))
-            if splitIndex == "-1":
+            if splitIndex == -1:
                 self.accession = metaLine
             else:
                 self.accession = metaLine[0:splitIndex]
