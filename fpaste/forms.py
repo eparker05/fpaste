@@ -1,7 +1,7 @@
 
 from flask.ext.wtf import Form
-from wtforms import Field, TextField, TextAreaField, BooleanField, RadioField, widgets
-from wtforms.validators import Required, Length, ValidationError, Regexp
+from wtforms import Field, TextField, TextAreaField, BooleanField, RadioField, HiddenField, widgets
+from wtforms.validators import Required, Length, ValidationError, Regexp, EqualTo
 
 import re
 
@@ -107,7 +107,11 @@ class UserLoginForm(Form):
     userkey = TextField('userkey', validators=[Required(),
                                                Length(min=1, max=128)])
     remember_me = BooleanField("remember_me", default=False)
-     
+
+class DeleteHidden(Form):
+    deleteThis = HiddenField("deleteThis", default="yes", validators=[Required(), EqualTo("yes")])
+    
+    
 class MakeListFromUniprot(Form):
     def validate_uniprotList(form, field):
         unipRegexStr = r'\A([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}){1}\Z'

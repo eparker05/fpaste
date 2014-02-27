@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+<h3>You have selected "{{ fastaDetails.id }}"</h3>
+<p>meta line: "{{ fastaDetails.meta }}"</p>
+<p>added on: {{ fastaDetails.added }}</p>
+<p><form action="" method="post" name="delete">
+{{form.hidden_tag()}}
+{{form.deleteThis()}}
+<a href="/fasta/{{ fastaDetails.id }}.fasta">View raw fasta</a>
+<br><br>
+<input type="submit" value="Delete FASTA"></form></p>
+{% endblock %}

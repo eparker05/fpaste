@@ -134,10 +134,32 @@ def single_paste():
     return render_template('paste.html',
                            form = form)
 
-@app.route("/fasta/<fasta_id>")
+@app.route("/fasta/<fasta_id>", methods = ['GET', 'POST'])
+def fasta_details(fasta_id):
+    form = forms.DeleteHidden()
+    fastaDetails = {}
+    
+    if form.validate_on_submit():
+        return "<p>"+form.deleteThis.data+"</p>"
+    else:
+        fasta = models.FastaEntry.query.filter_by(accessCode = fasta_id).first()
+        if fasta is None:
+            flash("no fata matches this id")
+            return redirect("/my_activity")
+        else:
+            fastaDetails = {}
+            fastaDetails["id"] = fasta.accessCode
+            fastaDetails["added"] = str(fasta.added)
+            fastaDetails["meta"] = ">" + fasta.accession + " " + fasta.metaData
+            return render_template('fasta_details.html',
+                                   fastaDetails = fastaDetails,
+                                   form = form)
+    
+    
+    
 @app.route("/fasta/<fasta_id>.txt")
 @app.route("/fasta/<fasta_id>.fasta")
-def render_fasta(fasta_id):
+def render_fasta_file(fasta_id):
     fasta = models.FastaEntry.query.filter_by(accessCode = fasta_id).first()
     if fasta is None:
         fastaReturn = ""
