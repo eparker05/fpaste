@@ -1,55 +1,37 @@
 #!/home/wwwadmin/fastadb/python27/bin/python
 from urllib import quote_plus
 import requests
+from Bio import SeqIO
+from io import StringIO
 
 def get_uniprot_protein_info(uniprotId, cutSignalSequence=False):
     uniUrl = "http://www.uniprot.org/uniprot/" + quote_plus(uniprotId) + ".txt"
-    result = requests.get(uniUrl)
-    if result.status_code != 200:
-        return {"success":False, 
-                "error":"Http code {} for id {}.".format(result.status_code, uniprotId),
+    page = requests.get(uniUrl)
+    outDict = { "success":False, 
+                "error":"",
                 "header":uniprotId,
-                "meta":uniUrl}
-    else:
-        #transcribe into split lists
-        rawResultList = result.text.split("\n")
-        uniprotSourceList = []
-        for line in rawResultList:
-            outputList = line.split()
-            uniprotSourceList.append(outputList)
-        #find sequence
-        foundSQ = False
-        for lineList in uniprotSourceList:
-            if lineList and lineList[0] == "SQ":
-                SqLength = int(lineList[2].strip())
-                SqIndex = uniprotSourceList.index(lineList)
-                sequence = ''.join([''.join(a) for a in uniprotSourceList[SqIndex+1:-1]])
-                sequence = ''.join([a for a in sequence if a.isalpha()])
-                finalSequence = sequence
-        #No sequence length error state
-        if not SqLength:
-            return {"success":False, 
-                    "error":"Sequence length not found in SQ section",
-                    "header":uniprotId,
-                    "meta":uniUrl}
-        #meta data does not match sequence error state
-        if len(sequence) != SqLength:
-            return {"success":False, 
-                    "error":"Sequence length {} does not match SQ annotation {}".format(len(sequence), SqLength),
-                    "header":uniprotId,
-                    "meta":uniUrl}
-        #find signal sequence when required
-        if cutSignalSequence:
-            for lineList in uniprotSourceList:
-                if lineList and lineList[0] == "FT" and lineList[1] == "SIGNAL":
-                    beginSignal = int(lineList[2].strip()) - 1
-                    endSignal = int(lineList[3].strip())
-                    finalSequence = sequence[endSignal:]        
-        return {"sequence":finalSequence, 
-                "header":uniprotId, 
-                "meta":uniUrl, 
-                "success":True, 
-                "error":""}
-                
-_testseq = "P12763"
-
+                "meta":uniUrl }
+    #check for bad return
+    if page.status_code != 200:
+        outDict["error"] = "Http code {} for id {}.".format(page.status_code, uniprotId)
+        return outDict
+    #create a file object for the parser
+    uniFileFake = StringIO(page.text)
+    try:
+        seqRec = SeqIO.read(uniFileFake, 'swiss')
+    except ValueError:
+        outDict["error"] = "Invalid format was returned for id {}.".format(uniprotId)
+        return outDict
+    #parse output for SIGNAL sequence, be very paranoid about failure, return 0 by default or in failure 
+    realStart = 0
+    if cutSignalSequence:
+        for feat in seqRec.features:
+            if feat.type == "SIGNAL":
+                try:
+                    realStart = feat.location.end
+                except:
+                    pass
+    sequence = str(seqRec.seq)[realStart:]
+    outDict["seq"] = sequence
+    outDict["success"] = True
+    return outDict

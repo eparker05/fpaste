@@ -138,22 +138,24 @@ def single_paste():
 def fasta_details(fasta_id):
     form = forms.DeleteHidden()
     fastaDetails = {}
+    fasta = models.FastaEntry.query.filter_by(accessCode = fasta_id).first()
+    if fasta is None:
+        flash("no fata matches this id")
+        return redirect("/my_activity")
     
     if form.validate_on_submit():
-        return "<p>"+form.deleteThis.data+"</p>"
+        flash("fasta entry <{}> deleted".format(fasta_id))
+        db.session.delete(fasta)
+        db.session.commit()
+        return redirect("/my_activity")
     else:
-        fasta = models.FastaEntry.query.filter_by(accessCode = fasta_id).first()
-        if fasta is None:
-            flash("no fata matches this id")
-            return redirect("/my_activity")
-        else:
-            fastaDetails = {}
-            fastaDetails["id"] = fasta.accessCode
-            fastaDetails["added"] = str(fasta.added)
-            fastaDetails["meta"] = ">" + fasta.accession + " " + fasta.metaData
-            return render_template('fasta_details.html',
-                                   fastaDetails = fastaDetails,
-                                   form = form)
+        fastaDetails = {}
+        fastaDetails["id"] = fasta.accessCode
+        fastaDetails["added"] = str(fasta.added)
+        fastaDetails["meta"] = ">" + fasta.accession + " " + fasta.metaData
+        return render_template('fasta_details.html',
+                               fastaDetails = fastaDetails,
+                               form = form)
     
     
     
@@ -211,5 +213,5 @@ def add_fasta_entry(meta, seq, type="protein"): #returns {"success":bool, "error
         newFasta.user_id = g.user.id
         db.session.add(newFasta)
         db.session.commit()
-        return {"success":True, "error":'', "code":b64hash}
+        return {"object":newFasta, "success":True, "error":'', "code":b64hash}
         #flash("new fasta added with access code = {}".format(b64hash))

@@ -109,7 +109,7 @@ class UserLoginForm(Form):
     remember_me = BooleanField("remember_me", default=False)
 
 class DeleteHidden(Form):
-    deleteThis = HiddenField("deleteThis", default="yes", validators=[Required(), EqualTo("yes")])
+    deleteThis = HiddenField("deleteThis", default="yes", validators=[Required(), Regexp("yes")])
     
     
 class MakeListFromUniprot(Form):
