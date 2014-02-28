@@ -11,4 +11,4 @@ sqlalchemy
 flask-sqlalchemy
 flask-login
 requests
-
+biopython
