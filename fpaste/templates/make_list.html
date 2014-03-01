@@ -4,16 +4,6 @@
 <form action="" method="post" name="fastaUpload">
 {{form.hidden_tag()}}
 <p>
-    User name: {{ form.username(size=15) }}
-    {% for error in form.errors.username %}
-        <span style="color: red;">[{{error}}]</span>
-    {% endfor %}
-    &nbsp&nbsp key:{{ form.userkey(size=20) }}
-    {% for error in form.errors.userkey %}
-        <span style="color: red;">[{{error}}]</span>
-    {% endfor %}
-</p>
-<p>
     Enter a comma separated list fasta access codes:<br>
     {{ form.fastas(rows=10, cols=40) }}
     {% for error in form.errors.fastas %}

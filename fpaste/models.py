@@ -72,12 +72,11 @@ class FastaEntry(db.Model):
     added = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
-    fastalists = db.relationship("FastaList", secondary=list_to_fasta,
-                        backref=db.backref("fastas", lazy=True))
+    #fastaLists db.backref("fastaLists", lazy=True)
     
     
     
-    def read_in_meta_line(self, metaLine):
+    def read_in_meta_line(self, metaLine):  
         #pre-process and strip
         metaLine = metaLine.strip()
         if metaLine[0] == ">":
@@ -103,5 +102,6 @@ class FastaList(db.Model):
     accessCode = db.Column(db.String(64), index = True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     
-    # - this is actually populated thanks to the backref command
-    #fastaentry = db.relationship("FastaEntry", back_populates="fastalist")
+    fastas = db.relationship("FastaEntry", secondary=list_to_fasta,
+                              backref=db.backref("fastaLists", lazy=True))
+    

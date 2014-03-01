@@ -9,6 +9,7 @@ import ioroutines as ior
 from hashlib import sha256
 from base64 import urlsafe_b64encode
 from datetime import datetime
+from random import random
 
 @lm.user_loader
 def load_user(id):
@@ -69,9 +70,6 @@ def make_list():
     return render_template('make_list.html', form=form)
 
 
-
-
-
 @app.route('/import_uniprot', methods = ['GET', 'POST'])
 @login_required
 def import_uniprot():
@@ -79,23 +77,29 @@ def import_uniprot():
     errors = []
     if form.validate_on_submit() and g.userLoggedIn:
         user = g.user
-        cutSignalSeq = form.cutSignalSeq.data            
-        ids = form.uniprotIds
+        cutSignalSeq = form.cutSignalSeq.data
+        ids = form.uniprotIds.data
+        idCode = urlsafe_b64encode(sha256(user.nickname+str(random())+str(random())).digest())[0:20]
+        newFastaList = models.FastaList(accessCode = idCode, user_id = user.id)
+        db.session.add(newFastaList)
         for id in ids:
-            out = ior.get_uniprot_protein_info(id) 
-            if not out["success"]:
-                errors.append({"link":out["meta"], "name":out["header"], "error":out["error"]})
+            uniprotOutput = ior.get_uniprot_protein_info(id, cutSignalSequence=cutSignalSeq) 
+            if not uniprotOutput["success"]:
+                errors.append(uniprotOutput["error"])
             else:
-                pass                
+                meta = ">" + uniprotOutput["header"] + " " + uniprotOutput["url"]
+                seq = uniprotOutput["seq"]
+                newFasta = add_fasta_entry(meta, seq, type="protein")
+                if newFasta["success"]:
+                    fastaObj = newFasta["object"]
+                    newFastaList.fastas.append(fastaObj)
+                    db.session.add(fastaObj)
+            db.session.commit()
     return render_template('make_list_uniprot.html', form=form)
 
 
-
-
-
-
-
-
+    
+    
 @app.route('/my_activity')
 @login_required
 def my_activity():
@@ -109,7 +113,7 @@ def my_activity():
         fastaLists = models.FastaList.query.filter_by(user_id=g.user.id)
         #pull all fasta lists
         for fastaL in fastaLists:
-            fastaListDicts.append( {'id':fastL.accessCode } )
+            fastaListDicts.append( {'id':fastaL.accessCode } )
     return render_template( "user_content.html",
                             fastaList = fastaDicts,
                             fastaListList = fastaListDicts)    
@@ -180,23 +184,22 @@ def render_fasta_file(fasta_id):
 
 def add_fasta_entry(meta, seq, type="protein"): #returns {"success":bool, "error":str, "code":str}
     #meta data line reading and grab type/sequence
-    metaLine = meta
     sequence = ''.join([aa.strip() for aa in seq])
     
     # check for existing seq
-    binHash = sha256(metaLine+sequence).digest()
+    binHash = sha256(meta+sequence).digest()
     duplicated, lencut = (True, 15) 
     while duplicated and lencut < 20:
         b64hash = urlsafe_b64encode(binHash)[0:lencut]
         fastaInDb = models.FastaEntry.query.filter_by(accessCode=b64hash).first()
+        lencut += 1
         if fastaInDb is None:
             duplicated = False
         elif fastaInDb.sequence == sequence:
-            return {"success":False,
-                    "error":"this sequence exists as record {}".format(b64hash),
-                    "code":b64hash}
-        else:
-            lencut += 1
+            return {"success":True,
+                    "error":"",
+                    "code":b64hash,
+                    "object":fastaInDb}
     
     if duplicated:
         return {"success":False, "error":"duplicated", "code":b64hash}
@@ -204,7 +207,7 @@ def add_fasta_entry(meta, seq, type="protein"): #returns {"success":bool, "error
         newFasta = FastaEntry()
         #append scrubbed sequence and meta line with accession
         newFasta.sequence = sequence
-        newFasta.read_in_meta_line(metaLine)
+        newFasta.read_in_meta_line(meta)
         #getcode and asign
         newFasta.accessCode = b64hash
         #added datetime

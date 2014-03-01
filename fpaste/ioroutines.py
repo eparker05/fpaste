@@ -5,13 +5,14 @@ from Bio import SeqIO
 from io import StringIO
 
 def get_uniprot_protein_info(uniprotId, cutSignalSequence=False):
+    #make request and set up default output
     uniUrl = "http://www.uniprot.org/uniprot/" + quote_plus(uniprotId) + ".txt"
     page = requests.get(uniUrl)
     outDict = { "success":False, 
                 "error":"",
                 "header":uniprotId,
-                "meta":uniUrl }
-    #check for bad return
+                "url":uniUrl }
+    #check for bad http return
     if page.status_code != 200:
         outDict["error"] = "Http code {} for id {}.".format(page.status_code, uniprotId)
         return outDict
