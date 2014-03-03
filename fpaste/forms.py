@@ -92,9 +92,9 @@ class SingleFastaPaste(Form):
 
 class MakeListFromSelf(Form):
     """Accept lists and fastas to make a list """
-    fastas = CsvTextAreaField("fastas", validators=[Length(max=1000)])
-    fastaLists = CsvTextAreaField("fastaLists", validators=[Length(max=200)])
-    subtractList = CsvTextField("subtractList", validators=[Length(max=50)])
+    fastaList = TextField("fastaList", validators=[Regexp(r'(.){20}', message="Must be a single valid fasta list identifier")])
+    fastaAdd = CsvTextAreaField("fastas", validators=[Length(max=1000)])
+    fastaSubtract = CsvTextAreaField("fastaLists", validators=[Length(max=200)])
 
 class UserLoginForm(Form):
     """Accept lists and fastas to make a list """

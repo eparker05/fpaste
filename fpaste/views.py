@@ -57,16 +57,32 @@ def redir():
 @app.route('/make_list', methods = ['GET', 'POST'])
 def make_list():
     form = forms.MakeListFromSelf()
-    validated = form.validate_on_submit()
-        
-    #user login????
-    loggedIn = True
-    if validated:
-        user = g.user
-            
-    if validated and loggedIn:
-        pass
-        
+    user = g.user
+    
+    if form.validate_on_submit():
+        newFastaList = models.FastaList.query.filter_by(accessCode = form.fastaList.data).first()
+        if newFastaList is None:
+            idCode = urlsafe_b64encode(sha256(user.nickname+str(random())+str(random())).digest())[0:20]
+            newFastaList = models.FastaList(accessCode = idCode, user_id = user.id)
+            db.session.add(newFastaList)
+            outputMessage = "Fasta list {} has been created".format(newFastaList.accessCode)
+        else:
+            outputMessage = "Fasta list {} has been modified".format(newFastaList.accessCode)
+        #Process lists for added fastas and removed fastas
+        for access in form.fastaAdd.data:
+            entry = models.FastaEntry.query.filter_by(accessCode = access).first()
+            if entry is not None:
+                newFastaList.fastas.append(entry)
+        for fasta in newFastaList.fastas:
+            accessCode = fasta.accessCode
+            if accessCode in form.fastaSubtract.data:
+                delIndex = newFastaList.fastas.index(fasta)
+                del(newFastaList.fastas[delIndex])
+        form.fastaList.data = ""
+        form.fastaAdd.data = []
+        form.fastaSubtract.data = []
+        db.session.commit()
+        flash(outputMessage)               
     return render_template('make_list.html', form=form)
 
 
@@ -160,10 +176,51 @@ def fasta_details(fasta_id):
         return render_template('fasta_details.html',
                                fastaDetails = fastaDetails,
                                form = form)
+                               
+@app.route("/fastalist/<fastalist_id>", methods = ['GET', 'POST'])
+def fasta_list_details(fastalist_id):
+    form = forms.DeleteHidden()
+    fastaDetails = {}
+    fastaList = models.FastaList.query.filter_by(accessCode = fastalist_id).first()
+    if fastaList is None:
+        flash("no fata matches this id")
+        return redirect("/my_activity")
+    
+    if form.validate_on_submit():
+        flash("fasta entry <{}> deleted".format(fastalist_id))
+        db.session.delete(fastaList)
+        db.session.commit()
+        return redirect("/my_activity")
+    else:
+        fastaDetails = {}
+        fastaDetails["accessCode"] = fastaList.accessCode
+        #fastaDetails["added"] = str(fasta.added)
+        fastaDetails["added"] = "DATE GOES HERE"
+        fastaDetails["fastas"] = fastaList.fastas
+        return render_template('fasta_list_details.html',
+                               fastaDetails = fastaDetails,
+                               form = form)
+
+@app.route("/fastalist/<fastalist_id>.fasta", methods = ['GET', 'POST'])
+def render_fasta_list(fastalist_id):
+    fastaList = models.FastaList.query.filter_by(accessCode = fastalist_id).first()
+    if fastaList is None:
+        fastaReturn = "notfound"
+    else:
+        fastaReturn = ""
+        for fasta in fastaList.fastas:
+            fastaReturn += ">" + fasta.accession + " " + fasta.metaData + "\n"
+            counter = 0
+            for char in fasta.sequence:
+                counter += 1
+                fastaReturn += char
+                if counter % 80 == 0:
+                    counter = 0
+                    fastaReturn += "\n"
+            fastaReturn += "\n"
+    return Response(fastaReturn, content_type="text/plain;charset=UTF-8")  
     
     
-    
-@app.route("/fasta/<fasta_id>.txt")
 @app.route("/fasta/<fasta_id>.fasta")
 def render_fasta_file(fasta_id):
     fasta = models.FastaEntry.query.filter_by(accessCode = fasta_id).first()

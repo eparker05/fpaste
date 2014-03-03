@@ -4,23 +4,23 @@
 <form action="" method="post" name="fastaUpload">
 {{form.hidden_tag()}}
 <p>
-    Enter a comma separated list fasta access codes:<br>
-    {{ form.fastas(rows=10, cols=40) }}
-    {% for error in form.errors.fastas %}
+    Enter a single fasta list if you are editing one:<br>
+    {{ form.fastaList(size=25) }}
+    {% for error in form.errors.fastaList %}
         <span style="color: red;">[{{error}}]</span>
     {% endfor %}
 </p>
 <p>
-    Enter any lists to include, comma separated:<br>
-    {{ form.fastaLists(rows=5, cols=40) }}
-    {% for error in form.errors.fastaLists %}
+    Enter a comma separated list fasta access codes to add:<br>
+    {{ form.fastaAdd(rows=10, cols=40) }}
+    {% for error in form.errors.fastaAdd %}
         <span style="color: red;">[{{error}}]</span>
     {% endfor %}
 </p>
 <p>
-    Enter any lists of fastas to exclude:<br>
-    {{ form.subtractList(size=30) }}
-    {% for error in form.errors.subtractList %}
+    Enter a comma separated list fasta access codes to remove:<br>
+    {{ form.fastaSubtract(rows=5, cols=40) }}
+    {% for error in form.errors.fastaSubtract %}
         <span style="color: red;">[{{error}}]</span>
     {% endfor %}
 </p>
