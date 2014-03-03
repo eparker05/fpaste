@@ -3,15 +3,15 @@
 <div>
 <h3>You have selected list "{{ fastaDetails.accessCode }}"</h3>
 <p>added on: {{ fastaDetails.added }}</p>
-<h3>Contained fastas:</h3>
-{% for fasta in fastaDetails.fastas %}
- <p><a href="/fasta/{{fasta.accessCode}}">{{fasta.accessCode}}</a> = {{fasta.accession}}</p>
-{%endfor%}
-<br>
 <p><form action="" method="post" name="delete">
 {{form.hidden_tag()}}
 {{form.deleteThis()}}
 <a href="/fastalist/{{ fastaDetails.accessCode }}.fasta">View raw fasta library</a>
+<h3>All contained fastas:</h3>
+{% for fasta in fastaDetails.fastas %}
+ <p><a href="/fasta/{{fasta.accessCode}}">{{fasta.accessCode}}</a> = {{fasta.accession}}</p>
+{%endfor%}
+<br>
 <br><br>
 <input type="submit" value="Delete FASTA"></form></p>
 {% endblock %}
