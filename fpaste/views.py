@@ -55,6 +55,7 @@ def redir():
     return redirect('/my_activity')
 
 @app.route('/make_list', methods = ['GET', 'POST'])
+@login_required
 def make_list():
     form = forms.MakeListFromSelf()
     user = g.user
