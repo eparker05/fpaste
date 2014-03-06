@@ -1,7 +1,8 @@
 
 from flask.ext.wtf import Form
-from wtforms import Field, TextField, TextAreaField, BooleanField, RadioField, HiddenField, widgets
+from wtforms import Field, TextField, TextAreaField, BooleanField, RadioField, HiddenField, widgets, SelectMultipleField, PasswordField
 from wtforms.validators import Required, Length, ValidationError, Regexp, EqualTo
+from flask_wtf.file import FileRequired, FileField
 
 import re
 
@@ -25,6 +26,17 @@ class CsvTextAreaField(Field):
 class CsvTextField(CsvTextAreaField):
     widget = widgets.TextInput()
 
+class MultiCheckboxField(SelectMultipleField):
+    """
+    A multiple-select, except displays a list of checkboxes.
+
+    Iterating the field will produce subfields, allowing custom rendering of
+    the enclosed checkbox fields.
+    """
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+    
+    
 #""" actual forms """
     
 class ValidateFastaSeq(object):
@@ -100,7 +112,7 @@ class UserLoginForm(Form):
     """Accept lists and fastas to make a list """
     username = TextField('username', validators=[Required(),
                                                  Length(min=1, max=128)])    
-    userkey = TextField('userkey', validators=[Required(),
+    userkey = PasswordField('userkey', validators=[Required(),
                                                Length(min=1, max=128)])
     remember_me = BooleanField("remember_me", default=False)
 
@@ -124,4 +136,9 @@ class MakeListFromUniprot(Form):
     uniprotIds = CsvTextAreaField("uniprotIds", validators=[Required(), 
                                                  validate_uniprotList])
     cutSignalSeq = BooleanField("cutSignalSeq", default=False)
+    
+class AnalyzeEnzymeActivity(Form):
+    fastaPlasteLibrary = TextField("fastaList", validators=[Regexp(r'(.){20}', message="Must be a single valid fasta list identifier")])
+    selectedEnzymes = MultiCheckboxField("selectedEnzymes")
+    peptideCsv = FileField("Peptide CSV", validators=[FileRequired()])
 

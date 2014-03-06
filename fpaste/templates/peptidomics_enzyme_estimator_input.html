@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data" name="analyzeEnzymes">
+{{form.hidden_tag()}}
+<p>
+    Enter a valid identifier for a fasta library stored in the fasta paste app:<br>
+    {{ form.fastaPlasteLibrary(size=25) }}
+    {% for error in form.errors.fastaPlasteLibrary %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<p>
+    Select enzymes to use in this analysis:<br>
+    <table style="width:600px">
+    <tr>
+    {% for enzyme in form.selectedEnzymes %}
+        <td>{{enzyme}}{{ enzyme.label }} </td>
+        {% if loop.index is divisibleby(3) %}
+        </tr>
+        <tr>
+        {% endif %}
+    {% endfor %}
+    </tr>
+    </table>
+    {% for error in form.errors.selectedEnzymes %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<p>
+    Select a peptide file with the correct format:<br>
+    {{ form.peptideCsv }}
+    {% for error in form.errors.peptideCsv %}
+        <span style="color: red;">[{{error}}]</span>
+    {% endfor %}
+</p>
+<input type="submit" value="Analyze Enzyme Activity"></p>
+</form>
+{% endblock %}

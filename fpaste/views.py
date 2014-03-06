@@ -5,11 +5,14 @@ import forms
 from models import FastaEntry
 import models 
 import ioroutines as ior
+import PeptidomicsEnzymeEstimator as pee
 
 from hashlib import sha256
 from base64 import urlsafe_b64encode
 from datetime import datetime
 from random import random
+from StringIO import StringIO
+import json
 
 @lm.user_loader
 def load_user(id):
@@ -203,7 +206,7 @@ def fasta_list_details(fastalist_id):
                                form = form)
 
 @app.route("/fastalist/<fastalist_id>.fasta", methods = ['GET', 'POST'])
-def render_fasta_list(fastalist_id):
+def render_fasta_list(fastalist_id, returnFastaText=False):
     fastaList = models.FastaList.query.filter_by(accessCode = fastalist_id).first()
     if fastaList is None:
         fastaReturn = "notfound"
@@ -219,6 +222,10 @@ def render_fasta_list(fastalist_id):
                     counter = 0
                     fastaReturn += "\n"
             fastaReturn += "\n"
+    #this can be called as a text getter
+    if returnFastaText:
+        return fastaReturn
+    #return the real page
     return Response(fastaReturn, content_type="text/plain;charset=UTF-8")  
     
     
@@ -238,8 +245,52 @@ def render_fasta_file(fasta_id):
                 fastaReturn += "\n"
     return Response(fastaReturn, content_type="text/plain;charset=UTF-8")
 
+@app.route("/enzyme_analysis", methods = ['GET', 'POST'])
+def enzyme_analysis():
+    enzymeDict = pee.enzymeListNC
+    enzymeChoices = [(enzyme, enzyme) for enzyme in enzymeDict]
+    form = forms.AnalyzeEnzymeActivity()
+    form.selectedEnzymes.choices = enzymeChoices
+    
+    if form.validate_on_submit():
+        #User input:
+        processSuccessful = True
+        inputEnzymeList = form.selectedEnzymes.data
+        peptideCsv = form.peptideCsv.data                        #this might not work????
+        fastaString = form.fastaPlasteLibrary.data
+        if form.fastaPlasteLibrary.data == "notfound":
+            processSuccessful = False
+            flash("Invalid protein library was selected")
+        else:
+            fastaLibraryFile = StringIO(render_fasta_list(fastaString, returnFastaText=True))
 
-
+            try:
+                peptideList = pee.import_peptides_and_preprocess(peptideCsv, fastaLibraryFile, inputEnzymeList)
+            except Exception, e:
+                flash("import not successful")
+                flash(e)
+                processSuccessful = False
+            try:
+                results = pee.extract_data_from_processed_peptides(peptideList, inputEnzymeList, result="list")
+            except Exception, e:
+                flash("processing not successful")
+                flash(e)
+                processSuccessful = False
+        
+            
+                
+            if processSuccessful:
+                headerList = results[0]
+                outputData = results[1:]
+                plotData = [sum(result[1:]) for result in outputData]
+                plotHeader = ["Response"] + [result[0] for result in outputData]
+                plotData = [plotHeader, ['File Sum']+plotData]
+                plotData = json.dumps(plotData)
+                return render_template('peptidomics_enzyme_estimator_output.html', form=form,
+                                        headerList=headerList, outputData=outputData, plotData=plotData)
+    
+    return render_template('peptidomics_enzyme_estimator_input.html', form=form)
+    
 def add_fasta_entry(meta, seq, type="protein"): #returns {"success":bool, "error":str, "code":str}
     #meta data line reading and grab type/sequence
     sequence = ''.join([aa.strip() for aa in seq])

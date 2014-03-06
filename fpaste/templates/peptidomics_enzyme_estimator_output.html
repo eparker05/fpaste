@@ -1,0 +1,52 @@
+{# 
+   This template requires a list of header information "headerList"
+   and a list of row lists "outputData" that is a list of lists
+#}
+{% extends "base.html" %}
+{% block content %}
+<div>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable({{plotData|safe}});
+
+        var options = {
+          title: 'Enzyme activity estimation pecificity',
+          vAxis: {title: 'Enzyme',  titleTextStyle: {color: 'red'}}
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+</div>
+<div>
+<!-- this style element is 'ok' on most browsers since
+html5 will allow scoped style in the body -->
+<style type = "text/css" scoped>
+    table, th, td
+    {
+    border: 1px solid black;
+    border-collapse:collapse
+    }
+</style>
+<h3>Peptidome enzyme analysis results:</h3>
+<table>
+  <tr>
+  {% for headTxt in headerList %}
+    <th width="100">{{ headTxt }}</th>
+  {% endfor %}
+  </tr>
+  {% for row in outputData %}
+  <tr>
+    {% for data in row %}
+    <td>{{ data }}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}
