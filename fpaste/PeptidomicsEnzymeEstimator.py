@@ -17,7 +17,8 @@ _el = { "Arg-C proteinase":                r'([A-Z_]R[A-Z][A-Z_])',
         "Cathepsin D":                     r'([A-Z_][AVLIPMFW][AVLIPMF][A-Z_])',
         "Thrombin":                        r'([A-Z_]RG[A-Z_]|GR[A-Z][A-Z_])',
         "Elastase":                        r'([A-Z_][AVLIGR][GPALF][A-Z_])',
-        "Trypsin":                         r'([A-Z_][KR][A-OQ-Z][A-Z_])'}
+        "Trypsin":                         r'([A-Z_][KR][A-OQ-Z][A-Z_])',
+        "_No enzyme":                      r'(__\+__)'}
         
 EnzymeList = {enz: re.compile(_el[enz]) for enz in _el}
 enzymeListNC = {enz: {"n":re.compile(r'\A'+_el[enz]), "c":re.compile(_el[enz]+r'\Z')} for enz in _el}

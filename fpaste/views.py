@@ -249,6 +249,7 @@ def render_fasta_file(fasta_id):
 def enzyme_analysis():
     enzymeDict = pee.enzymeListNC
     enzymeChoices = [(enzyme, enzyme) for enzyme in enzymeDict]
+    enzymeChoices.sort(key=lambda a: a[0])
     form = forms.AnalyzeEnzymeActivity()
     form.selectedEnzymes.choices = enzymeChoices
     
@@ -282,12 +283,31 @@ def enzyme_analysis():
             if processSuccessful:
                 headerList = results[0]
                 outputData = results[1:]
-                plotData = [sum(result[1:]) for result in outputData]
-                plotHeader = ["Response"] + [result[0] for result in outputData]
-                plotData = [plotHeader, ['File Sum']+plotData]
-                plotData = json.dumps(plotData)
+                rawData = [sum(result[1:]) for result in outputData]
+                indexSp = len(inputEnzymeList)
+                
+                head = ["Response", "Summed data"]
+                
+                enzymeHeader = [result[0] for result in outputData[0:indexSp]]
+                enzymePlotData = [enzymeHeader, rawData[0:indexSp]]
+                enzymePlotData = [list(a) for a in zip(*enzymePlotData)]
+                enzymePlotData.sort(key=lambda a: a[0])
+                enzymePlotData.insert(0, head)
+                enzymePlotData = json.dumps(enzymePlotData)
+                
+                
+                
+                orphanHeader = [result[0] for result in outputData[indexSp:]]
+                orphanPlotData = [orphanHeader, rawData[indexSp:]]
+                orphanPlotData = [list(a) for a in zip(*orphanPlotData)]
+                orphanPlotData.sort(key=lambda a: a[0])
+                orphanPlotData.insert(0, head)
+                orphanPlotData = json.dumps(orphanPlotData)
+                
+                
                 return render_template('peptidomics_enzyme_estimator_output.html', form=form,
-                                        headerList=headerList, outputData=outputData, plotData=plotData)
+                                        headerList=headerList, outputData=outputData, enzymePlotData=enzymePlotData,
+                                        orphanPlotData=orphanPlotData)
     
     return render_template('peptidomics_enzyme_estimator_input.html', form=form)
     

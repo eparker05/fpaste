@@ -10,18 +10,34 @@
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-        var data = google.visualization.arrayToDataTable({{plotData|safe}});
+        var data = google.visualization.arrayToDataTable({{enzymePlotData|safe}});
 
         var options = {
-          title: 'Enzyme activity estimation pecificity',
-          vAxis: {title: 'Enzyme',  titleTextStyle: {color: 'red'}}
+          title: 'Enzyme activity estimation specificity',
+          vAxis: {title: 'Enzymes',  titleTextStyle: {color: 'red'}}
         };
 
-        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        var chart = new google.visualization.BarChart(document.getElementById('enzyme_chart_div'));
         chart.draw(data, options);
       }
     </script>
-    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <div id="enzyme_chart_div" style="width: 800px; height: 400px;"></div>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable({{orphanPlotData|safe}});
+
+        var options = {
+          title: 'Cleavages not following assigned enzymatic rules',
+          vAxis: {title: 'Cleavage type',  titleTextStyle: {color: 'red'}}
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('orphan_chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+    <div id="orphan_chart_div" style="width: 800px; height: 800px;"></div>
 </div>
 <div>
 <!-- this style element is 'ok' on most browsers since
