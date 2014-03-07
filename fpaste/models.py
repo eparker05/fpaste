@@ -101,6 +101,7 @@ class FastaList(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     accessCode = db.Column(db.String(64), index = True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    added = db.Column(db.DateTime)
     
     fastas = db.relationship("FastaEntry", secondary=list_to_fasta,
                               backref=db.backref("fastaLists", lazy=True))
