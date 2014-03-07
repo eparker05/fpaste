@@ -67,7 +67,7 @@ def make_list():
         newFastaList = models.FastaList.query.filter_by(accessCode = form.fastaList.data).first()
         if newFastaList is None:
             idCode = urlsafe_b64encode(sha256(user.nickname+str(random())+str(random())).digest())[0:20]
-            newFastaList = models.FastaList(accessCode = idCode, user_id = user.id)
+            newFastaList = models.FastaList(accessCode = idCode, user_id = user.id, added = datetime.utcnow())
             db.session.add(newFastaList)
             outputMessage = "Fasta list {} has been created".format(newFastaList.accessCode)
         else:
@@ -100,7 +100,7 @@ def import_uniprot():
         cutSignalSeq = form.cutSignalSeq.data
         ids = form.uniprotIds.data
         idCode = urlsafe_b64encode(sha256(user.nickname+str(random())+str(random())).digest())[0:20]
-        newFastaList = models.FastaList(accessCode = idCode, user_id = user.id)
+        newFastaList = models.FastaList(accessCode = idCode, user_id = user.id, added = datetime.utcnow())
         db.session.add(newFastaList)
         for id in ids:
             uniprotOutput = ior.get_uniprot_protein_info(id, cutSignalSequence=cutSignalSeq) 
@@ -130,7 +130,7 @@ def my_activity():
         fastas = models.FastaEntry.query.filter_by(user_id=g.user.id)
         for fasta in fastas:
             fastaDicts.append( {"id":fasta.accessCode , "accession":fasta.accession} )
-        fastaLists = models.FastaList.query.filter_by(user_id=g.user.id)
+        fastaLists = models.FastaList.query.filter_by(user_id=g.user.id).order_by(models.FastaList.added.desc())
         #pull all fasta lists
         for fastaL in fastaLists:
             fastaListDicts.append( {'id':fastaL.accessCode } )
@@ -198,8 +198,7 @@ def fasta_list_details(fastalist_id):
     else:
         fastaDetails = {}
         fastaDetails["accessCode"] = fastaList.accessCode
-        #fastaDetails["added"] = str(fasta.added)
-        fastaDetails["added"] = "DATE GOES HERE"
+        fastaDetails["added"] = str(fastaList.added)
         fastaDetails["fastas"] = fastaList.fastas
         return render_template('fasta_list_details.html',
                                fastaDetails = fastaDetails,
