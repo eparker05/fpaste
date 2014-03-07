@@ -34,6 +34,15 @@
         <span style="color: red;">[{{error}}]</span>
     {% endfor %}
 </p>
+<p>
+    Select grouping method for analysis:
+    {% for error in form.errors.analysisType %}
+    <span style="color: red;">[{{error}}]</span>
+    {% endfor %}<br>
+    {% for subfield in form.analysisType %}
+    {{subfield}} &nbsp{{subfield.label}}<br>
+    {% endfor %}
+</p>
 <input type="submit" value="Analyze Enzyme Activity"></p>
 </form>
 {% endblock %}

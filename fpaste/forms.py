@@ -141,4 +141,7 @@ class AnalyzeEnzymeActivity(Form):
     fastaPlasteLibrary = TextField("fastaList", validators=[Regexp(r'(.){20}', message="Must be a single valid fasta list identifier")])
     selectedEnzymes = MultiCheckboxField("selectedEnzymes")
     peptideCsv = FileField("Peptide CSV", validators=[FileRequired()])
-
+    analysisType = RadioField('fastaType',
+                               choices = [('sampleId', "Sample ID"),
+                                          ('accession', "Protein")],
+                               validators=[Required()])

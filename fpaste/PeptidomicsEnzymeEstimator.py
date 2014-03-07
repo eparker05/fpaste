@@ -132,6 +132,7 @@ def import_peptides_and_preprocess(peptideCsvFileObject, fastaFileObject, validE
     peptideList = []
     
     headerDict = {"sequence":False, "intensity":False, "protein_id":False, "sample_id":False, "rt":False}
+    secondaryHeaderDict = {"protein code": "protein_id", "name":"sequence", "file":"sample_id"}
     fileAnalysisList = {}
     for line in peptideCsvFileObject:
         #parse header indicies
@@ -141,6 +142,8 @@ def import_peptides_and_preprocess(peptideCsvFileObject, fastaFileObject, validE
             for i in range(len(splitLine)):
                 if splitLine[i] in headerDict:
                     headerDict[splitLine[i]] = i
+                elif splitLine[i] in secondaryHeaderDict:
+                    headerDict[secondaryHeaderDict[splitLine[i]]] = i
             if (not headerDict["intensity"] and not headerDict["sequence"]
                     and not headerDict["protein_info"] and not headerDict["sample_id"]):
                 raise ValueError("Incorrect file format; missing one or more columns")
@@ -176,6 +179,9 @@ def extract_data_from_processed_peptides(peptideList, validEnzymeList, method="s
     """
     This function takes a format compliant CSV file object, a fasta file object
     and an enzyme regex dictionary containing n side and c side varriations
+    
+    method = "sampleId"  extracts by sample id
+    method = "accession" extracts by protein
     """
     if len(validEnzymeList) > 0:
         enzymeDict = {enzyme:enzymeListNC[enzyme] for enzyme in validEnzymeList if enzyme in enzymeListNC}

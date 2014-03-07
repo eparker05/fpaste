@@ -256,8 +256,10 @@ def enzyme_analysis():
         #User input:
         processSuccessful = True
         inputEnzymeList = form.selectedEnzymes.data
-        peptideCsv = form.peptideCsv.data                        #this might not work????
+        peptideCsv = form.peptideCsv.data
         fastaString = form.fastaPlasteLibrary.data
+        analysisType = form.analysisType.data
+        
         if form.fastaPlasteLibrary.data == "notfound":
             processSuccessful = False
             flash("Invalid protein library was selected")
@@ -271,14 +273,15 @@ def enzyme_analysis():
                 flash(e)
                 processSuccessful = False
             try:
-                results = pee.extract_data_from_processed_peptides(peptideList, inputEnzymeList, result="list")
+                results = pee.extract_data_from_processed_peptides(peptideList,
+                                                                   inputEnzymeList,
+                                                                   method=analysisType,
+                                                                   result="list")
             except Exception, e:
                 flash("processing not successful")
                 flash(e)
                 processSuccessful = False
         
-            
-                
             if processSuccessful:
                 headerList = results[0]
                 outputData = results[1:]
@@ -290,11 +293,9 @@ def enzyme_analysis():
                 enzymeHeader = [result[0] for result in outputData[0:indexSp]]
                 enzymePlotData = [enzymeHeader, rawData[0:indexSp]]
                 enzymePlotData = [list(a) for a in zip(*enzymePlotData)]
-                enzymePlotData.sort(key=lambda a: a[0])
+                enzymePlotData.sort(key=lambda a: -1*a[1])
                 enzymePlotData.insert(0, head)
                 enzymePlotData = json.dumps(enzymePlotData)
-                
-                
                 
                 orphanHeader = [result[0] for result in outputData[indexSp:]]
                 orphanPlotData = [orphanHeader, rawData[indexSp:]]
@@ -302,7 +303,6 @@ def enzyme_analysis():
                 orphanPlotData.sort(key=lambda a: a[0])
                 orphanPlotData.insert(0, head)
                 orphanPlotData = json.dumps(orphanPlotData)
-                
                 
                 return render_template('peptidomics_enzyme_estimator_output.html', form=form,
                                         headerList=headerList, outputData=outputData, enzymePlotData=enzymePlotData,
