@@ -102,6 +102,7 @@ def import_uniprot():
         idCode = urlsafe_b64encode(sha256(user.nickname+str(random())+str(random())).digest())[0:20]
         newFastaList = models.FastaList(accessCode = idCode, user_id = user.id, added = datetime.utcnow())
         db.session.add(newFastaList)
+        flash("New fasta library {} has been added".format(idCode))
         for id in ids:
             uniprotOutput = ior.get_uniprot_protein_info(id, cutSignalSequence=cutSignalSeq) 
             if not uniprotOutput["success"]:
@@ -115,6 +116,7 @@ def import_uniprot():
                     newFastaList.fastas.append(fastaObj)
                     db.session.add(fastaObj)
             db.session.commit()
+        return redirect('/my_activity')
     return render_template('make_list_uniprot.html', form=form)
 
 
@@ -256,7 +258,9 @@ def enzyme_analysis():
         #User input:
         processSuccessful = True
         inputEnzymeList = form.selectedEnzymes.data
-        peptideCsv = form.peptideCsv.data
+        if len(inputEnzymeList) == 0:
+            inputEnzymeList = ["_No enzyme"]
+	peptideCsv = form.peptideCsv.data
         fastaString = form.fastaPlasteLibrary.data
         analysisType = form.analysisType.data
         
