@@ -4,6 +4,7 @@ http://creativecommons.org/licenses/by/3.0/
 """
 
 from Bio import SeqIO
+from copy import copy
 import re
 
 
@@ -17,8 +18,10 @@ _el = { "Arg-C proteinase":                r'([A-Z_]R[A-Z][A-Z_])',
         "Cathepsin D":                     r'([A-Z_][AVLIPMFW][AVLIPMF][A-Z_])',
         "Cathepsin B":                     r'([A-Z_][GAMQT][FGIVL][A-Z_])',
         "Thrombin":                        r'([A-Z_]RG[A-Z_]|GR[A-Z][A-Z_])',
-        "Elastase":                        r'([A-Z_][AVLIGR][GPALF][A-Z_])',
+        "Elastase *(old)":                 r'([A-Z_][AVLIGR][GPALF][A-Z_])',
+        "Elastase":                        r'([A-Z_][VA][A-Z][A-Z_])',
         "Trypsin":                         r'([A-Z_][KR][A-OQ-Z][A-Z_])',
+        "Thrombin-OSP":                    r'(LRSK)',
         "_No enzyme":                      r'(__\+__)'}
         
 EnzymeList = {enz: re.compile(_el[enz]) for enz in _el}
@@ -208,14 +211,12 @@ def extract_data_from_processed_peptides(peptideList, validEnzymeList, method="s
         if len(peptide.nMatches) < 1:
             if peptide.contextSequence[1] != '_':
                 outDict[attribute]["nSideOrphans"][peptide.contextSequence[2]] += 0.5*peptide.intensity
-            if peptide.contextSequence[-2] != '_':
-                outDict[attribute]["nSideOrphans"][peptide.contextSequence[-2]] += 0.5*peptide.intensity
+                outDict[attribute]["cSideOrphans"][peptide.contextSequence[1]] += 0.5*peptide.intensity
         
         if len(peptide.cMatches) < 1:
             if peptide.contextSequence[-2] != '_':
                 outDict[attribute]["cSideOrphans"][peptide.contextSequence[-3]] += 0.5*peptide.intensity
-            if peptide.contextSequence[1] != '_':
-                outDict[attribute]["cSideOrphans"][peptide.contextSequence[1]] += 0.5*peptide.intensity
+                outDict[attribute]["nSideOrphans"][peptide.contextSequence[-2]] += 0.5*peptide.intensity
             
     if result == "dictionary":
         return outDict
@@ -223,16 +224,29 @@ def extract_data_from_processed_peptides(peptideList, validEnzymeList, method="s
     validAttributes = [attr for attr in outDict]
     validEnzymes = [enz for enz in enzymeDict]
     
-    firstColumn = [""] + validEnzymes + [aa+"-c-side" for aa in aaList] + [aa+"-n-side" for aa in aaList]
+    enzList = copy(validEnzymes)
+    enzList.sort()
+    cola = [""] + enzList
+    colb = [aa+"-c-side" for aa in aaList]
+    colb.sort()
+    colc = [aa+"-n-side" for aa in aaList]
+    colc.sort
+    firstColumn = cola + colb + colc
     columnList = [firstColumn]
     for attr in validAttributes:
         enzResponses = outDict[attr]["enzymeResponseDict"]
+        enzKeys = enzResponses.keys()
+        enzKeys.sort()
         cSide = outDict[attr]["cSideOrphans"]
+        cKeys = cSide.keys()
+        cKeys.sort()
         nSide = outDict[attr]["nSideOrphans"]
+        nKeys = nSide.keys()
+        nKeys.sort()
         
-        nextColumn = [attr] + [enzResponses[enz] for enz in enzResponses]
-        nextColumn += [cSide[enz] for enz in cSide]
-        nextColumn += [nSide[enz] for enz in nSide]
+        nextColumn = [attr] + [enzResponses[enz] for enz in enzKeys]
+        nextColumn += [cSide[enz] for enz in cKeys]
+        nextColumn += [nSide[enz] for enz in nKeys]
         columnList.append(nextColumn)
     
     newList = zip(*columnList)
